@@ -1,3 +1,4 @@
+import re
 import os
 import sys
 import time
@@ -221,10 +222,14 @@ def leCoordenada(dim):
 ##
 
 # Tamanho (da lateral) do tabuleiro. NECESSARIAMENTE PAR E MENOR QUE 10!
-dim = 4
+while True:
+    dim = int(input("Informe o tamanho do tabuleiro (2, 4, 6 ou 8): "))
+    if dim in [2,4,6,8]:
+        break
+    print("Valor inválido!\n")
 
 # Numero de jogadores
-nJogadores = 2
+nJogadores = int(input("Informe o número de jogadores: "))
 
 # Numero total de pares de pecas
 totalDePares = dim**2 / 2
