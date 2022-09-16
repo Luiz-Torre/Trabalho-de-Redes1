@@ -1,50 +1,71 @@
 import socket
+from socket import socket as Socket
 from _thread import *
 import sys
 
-server = "localhost"
-port = 1330
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+class Server:
 
-try:
-    s.bind((server, port))
-except socket.error as e:
-    print(e)
+    HOST = "localhost"  # IP local
+    PORT = 1331     # porta para conexão
+    socket = None   # socket do servidor, sem valor atribuído
+    clients = []    # lista de clientes conectados
 
-s.listen(2)
 
-print("Wating connection...")
-
-connections = []
-def threadead_client(conn, id):
-    while True:
-        try:
-            data = conn.recv(4096)#conexao recebe
-
-            if not data:
-                print("Disconnected")
-                break
-            
-            if(id == 1):#se o id é 1, então tem que mandar pra conexao 2 e viceversa
-                print("sendto: ", id)
-                connections[1].send(data)
-            else:
-                print("sendto: ", id)
-                connections[0].send(data)
-
-        except:
-            break
+    def start(n_players: int):
+        ''' Função para inicializar o servidor. '''
+        Server.socket = Socket(socket.AF_INET, socket.SOCK_STREAM)
     
-    conn.close()
+        try:
+            Server.socket.bind((Server.HOST, Server.PORT))
+        except socket.error as e:
+            print(e)
+            sys.exit()  
+        Server.socket.listen()
+        start_new_thread(Server.start_t,(n_players,))
 
-n_player = 1
+    def start_t(n_players: int): 
+        ''' Thread criada para esperar N conexões com o servidor. '''
+        while True:
+            print("Aguardando jogadores...")
+            conn, addr = Server.socket.accept()
+            n_clients = len(Server.clients) 
+
+            if n_clients < n_players:   
+                conn.send(str.encode(f"player:{n_clients+1}"))
+                Server.clients.append(conn)
+                print(f"{addr} está conectado.")
+                start_new_thread(Server.client_t, (conn, n_clients+1))
+            else:
+                break
+
+    def client_t(conn: Socket, id: int):
+        while True:
+            try:
+                data = conn.recv(4096) #conexao recebe
+
+                if not data:
+                    print("Disconnected")
+                    break
+                else:
+                    send_others(id, data)
+            except:
+                break
+        
+        conn.close()
+
+
+    def send_others(id: int, data: bytes):
+        n_clients = len(Server.clients) 
+
+        for i in range(1, n_clients+1):
+            if i == id: pass
+
+            print(i)
+            other.send(data)
+
+
+Server.start(5)
+
 while True:
-    conn,addr = s.accept()
-    n_connections = len(connections) 
-
-    if(n_connections < 10):
-        conn.send(str.encode(f"player:{n_connections+1}"))
-        connections.append(conn)
-        print('conected to: ', addr)
-        start_new_thread(threadead_client, (conn, n_connections+1,))
+    pass

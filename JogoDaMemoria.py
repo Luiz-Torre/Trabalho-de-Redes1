@@ -1,8 +1,9 @@
-import re
 import os
 import sys
 import time
 import random
+
+from servidor import Server
 
 ##
 # Funcoes uteis
@@ -230,6 +231,8 @@ while True:
 
 # Numero de jogadores
 nJogadores = int(input("Informe o número de jogadores: "))
+
+Server.start(nJogadores)
 
 # Numero total de pares de pecas
 totalDePares = dim**2 / 2
