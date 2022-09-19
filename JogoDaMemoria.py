@@ -191,9 +191,13 @@ def imprimeStatus(tabuleiro, placar, vez):
 
 # Le um coordenadas de uma peca. Retorna uma tupla do tipo (i, j)
 # em caso de sucesso, ou False em caso de erro.
-def leCoordenada(dim):
+def leCoordenada(dim, vez):
+    Server.send(vez, "> Especifique uma peca: ")
 
-    inp = input("Especifique uma peca: ")
+    #Esperando mensagem do servidor
+    while len(Server.messageBuffer[vez]) == 0: pass
+
+    inp = Server.messageBuffer[vez].pop(0)
 
     try:
         i = int(inp.split(' ')[0])
@@ -234,8 +238,7 @@ nJogadores = int(input("Informe o número de jogadores: "))
 Server.start(nJogadores)
 
 #Esperando jogadores se conectarem
-while(not Server.playersConnected): pass
-    
+while(not Server.playersConnected): pass   
 
 # Numero total de pares de pecas
 totalDePares = dim**2 / 2
@@ -264,7 +267,7 @@ while paresEncontrados < totalDePares:
         imprimeStatus(tabuleiro, placar, vez)
 
         # Solicita coordenadas da primeira peca.
-        coordenadas = leCoordenada(dim)
+        coordenadas = leCoordenada(dim, vez)
         if coordenadas == False:
             continue
 
@@ -272,9 +275,8 @@ while paresEncontrados < totalDePares:
 
         # Testa se peca ja esta aberta (ou removida)
         if abrePeca(tabuleiro, i1, j1) == False:
-
+            Server.send(vez, "+ Escolha uma peca ainda fechada!")
             print("Escolha uma peca ainda fechada!")
-            input("Pressione <enter> para continuar...")
             continue
 
         break 
@@ -286,7 +288,7 @@ while paresEncontrados < totalDePares:
         imprimeStatus(tabuleiro, placar, vez)
 
         # Solicita coordenadas da segunda peca.
-        coordenadas = leCoordenada(dim)
+        coordenadas = leCoordenada(dim, vez)
         if coordenadas == False:
             continue
 

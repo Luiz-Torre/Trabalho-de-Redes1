@@ -11,6 +11,7 @@ class Server:
     socket = None   # socket do servidor, sem valor atribuído
     clients = []    # lista de clientes conectados
     playersConnected = False
+    messageBuffer = []
 
 
     def start(n_players: int):
@@ -34,6 +35,7 @@ class Server:
             n_clients = len(Server.clients) 
 
             Server.clients.append(conn)
+            Server.messageBuffer.append([])
             print(f"{addr} está conectado.")
 
             #Manda para o player seu ID no servidor   
@@ -58,11 +60,16 @@ class Server:
                     break
                 else:
                     #Tratar mensagens recebidas por cada cliente
-                    Server.send_others(id, data)
+                    Server.messageBuffer[id - 1].append(data.decode())
+
             except:
                 break
         
         conn.close()
+    
+    def send(player: int, message: str):
+        Server.clients[player].send(str.encode(message))
+
 
     def send_others(id: int, data: bytes):
         n_clients = len(Server.clients) 
