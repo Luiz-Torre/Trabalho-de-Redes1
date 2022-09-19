@@ -11,7 +11,7 @@ from servidor import Server
 
 # Limpa a tela.
 def limpaTela():
-    
+
     os.system('cls' if os.name == 'nt' else 'clear')
 
 ##
@@ -187,7 +187,10 @@ def imprimeStatus(tabuleiro, placar, vez):
         sys.stdout.write('\n')
         sys.stdout.write('\n')
 
+
+        
         print("Vez do Jogador {0}.\n".format(vez + 1))
+        Server.send_others(vez, f"O Jogador {vez + 1} está jogando...\n")
 
 # Le um coordenadas de uma peca. Retorna uma tupla do tipo (i, j)
 # em caso de sucesso, ou False em caso de erro.
@@ -203,21 +206,21 @@ def leCoordenada(dim, vez):
         i = int(inp.split(' ')[0])
         j = int(inp.split(' ')[1])
     except ValueError:
-        print("Coordenadas invalidas! Use o formato \"i j\" (sem aspas),")
-        print("onde i e j sao inteiros maiores ou iguais a 0 e menores que {0}".format(dim))
-        input("Pressione <enter> para continuar...")
+
+        erro = f"+ Coordenadas invalidas! Use o formato \"i j\" (sem aspas),\nonde i e j sao inteiros maiores ou iguais a 0 e menores que {dim}\n"
+        Server.send(vez, erro)
         return False
 
     if i < 0 or i >= dim:
 
-        print("Coordenada i deve ser maior ou igual a zero e menor que {0}".format(dim))
-        input("Pressione <enter> para continuar...")
+        erro = f"+ Coordenada i deve ser maior ou igual a zero e menor que {dim}\n"
+        Server.send(vez, erro)
         return False
 
     if j < 0 or j >= dim:
 
-        print("Coordenada j deve ser maior ou igual a zero e menor que {0}".format(dim))
-        input("Pressione <enter> para continuar...")
+        erro = f"+ Coordenada j deve ser maior ou igual a zero e menor que {dim}\n"
+        Server.send(vez, erro)
         return False
 
     return (i, j)
@@ -264,6 +267,8 @@ while paresEncontrados < totalDePares:
     while True:
 
         # Imprime status do jogo
+        Server.send_others(vez, f"Vez do Jogador {vez + 1}.\n")
+        Server.send(vez, "\nSua vez de jogar!")        
         imprimeStatus(tabuleiro, placar, vez)
 
         # Solicita coordenadas da primeira peca.
@@ -275,8 +280,7 @@ while paresEncontrados < totalDePares:
 
         # Testa se peca ja esta aberta (ou removida)
         if abrePeca(tabuleiro, i1, j1) == False:
-            Server.send(vez, "+ Escolha uma peca ainda fechada!")
-            print("Escolha uma peca ainda fechada!")
+            Server.send(vez, "+ Escolha uma peca ainda fechada!\n")
             continue
 
         break 
@@ -297,8 +301,7 @@ while paresEncontrados < totalDePares:
         # Testa se peca ja esta aberta (ou removida)
         if abrePeca(tabuleiro, i2, j2) == False:
 
-            print("Escolha uma peca ainda fechada!")
-            input("Pressione <enter> para continuar...")
+            Server.send(vez, "+ Escolha uma peca ainda fechada!\n")
             continue
 
         break 
@@ -311,6 +314,8 @@ while paresEncontrados < totalDePares:
     # Pecas escolhidas sao iguais?
     if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
 
+        Server.send(vez, "Parabéns você pontuou! Agora, você joga novamente.\n")
+
         print("Pecas casam! Ponto para o jogador {0}.".format(vez + 1))
         
         incrementaPlacar(placar, vez)
@@ -320,8 +325,7 @@ while paresEncontrados < totalDePares:
 
         time.sleep(5)
     else:
-
-        print("Pecas nao casam!")
+        Server.send(vez, "Pecas nao casam!\n")
         
         time.sleep(3)
 
@@ -339,7 +343,7 @@ for i in range(nJogadores):
 
 if len(vencedores) > 1:
 
-    sys.stdout.write("Houve empate entre os jogadores ")
+    sys.stdout.write("\nHouve empate entre os jogadores ")
     for i in vencedores:
         sys.stdout.write(str(i + 1) + ' ')
 
@@ -347,6 +351,8 @@ if len(vencedores) > 1:
 
 else:
 
-    print("Jogador {0} foi o vencedor!".format(vencedores[0] + 1))
+    Server.send_others(vencedores[0], f"* Jogador {vencedores[0] + 1} foi o vencedor!\n")
+    Server.send(vencedores[0], "* Você ganhou! Uhuuul!\n")
+    print("\nJogador {0} foi o vencedor!\n".format(vencedores[0] + 1))
 
 

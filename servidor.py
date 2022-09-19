@@ -7,7 +7,7 @@ import sys
 class Server:
 
     HOST = "localhost"  # IP local
-    PORT = 1331     # porta para conexão
+    PORT = 1332     # porta para conexão
     socket = None   # socket do servidor, sem valor atribuído
     clients = []    # lista de clientes conectados
     playersConnected = False
@@ -64,17 +64,17 @@ class Server:
 
             except:
                 break
-        
         conn.close()
     
     def send(player: int, message: str):
-        Server.clients[player].send(str.encode(message))
+        Server.clients[player].send(str.encode(message+"#"))
 
 
-    def send_others(id: int, data: bytes):
+    def send_others(indice: int, data: str):
         n_clients = len(Server.clients) 
 
         for i in range(n_clients):
-            if i + 1 == id: continue
+            if i == indice: 
+                continue
 
-            Server.clients[i].send(data)
+            Server.send(i, data)

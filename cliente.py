@@ -77,7 +77,7 @@ class Client():
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server = "localhost"
-        self.port = 1331
+        self.port = 1332
         self.addr = (self.server, self.port)
         self.ready = False
         self.id = self.connect()
@@ -103,21 +103,26 @@ class Client():
         while True:
             data = self.client.recv(1024)
             self.last_response = data.decode()
+
             #Processar mensagens
-            type = self.last_response[0]
+            messages = self.last_response.split("#")[:-1]
+            for m in messages:
+                type_of_m = m[0]
 
-            #Se for uma ação
-            if type == ">":
-                #Mandar coordenadas
-                coordenadas = input(self.last_response[2:])
-                self.send(coordenadas.encode())
-            else:
-                print(self.last_response[2:])
-
-            #Executar
-
-
-            #Printar resultado
+                #Se for uma ação
+                if type_of_m == ">":
+                    #Mandar coordenadas
+                    coordenadas = input(m[2:])
+                    self.send(coordenadas.encode())
+                #Se for um erro
+                elif type_of_m == "+":
+                    print(m[2:])
+                elif type_of_m == "*":
+                    print(m[2:])
+                    self.close()
+                    sys.exit()
+                else:
+                    print(m)
 
 
     def close(self):
