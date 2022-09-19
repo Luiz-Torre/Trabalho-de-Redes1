@@ -231,8 +231,11 @@ while True:
 
 # Numero de jogadores
 nJogadores = int(input("Informe o número de jogadores: "))
-
 Server.start(nJogadores)
+
+#Esperando jogadores se conectarem
+while(not Server.playersConnected): pass
+    
 
 # Numero total de pares de pecas
 totalDePares = dim**2 / 2
@@ -243,6 +246,7 @@ totalDePares = dim**2 / 2
 
 # Cria um novo tabuleiro para a partida
 tabuleiro = novoTabuleiro(dim)
+
 
 # Cria um novo placar zerado
 placar = novoPlacar(nJogadores)

@@ -10,6 +10,7 @@ class Server:
     PORT = 1331     # porta para conexão
     socket = None   # socket do servidor, sem valor atribuído
     clients = []    # lista de clientes conectados
+    playersConnected = False
 
 
     def start(n_players: int):
@@ -28,16 +29,23 @@ class Server:
         ''' Thread criada para esperar N conexões com o servidor. '''
         while True:
             print("Aguardando jogadores...")
+
             conn, addr = Server.socket.accept()
             n_clients = len(Server.clients) 
 
-            if n_clients < n_players:   
-                conn.send(str.encode(f"player:{n_clients+1}"))
-                Server.clients.append(conn)
-                print(f"{addr} está conectado.")
-                start_new_thread(Server.client_t, (conn, n_clients+1))
-            else:
+            Server.clients.append(conn)
+            print(f"{addr} está conectado.")
+
+            #Manda para o player seu ID no servidor   
+            conn.send(str.encode(f"id:{n_clients+1}"))
+
+            start_new_thread(Server.client_t, (conn, n_clients+1))
+
+            if n_clients + 1 >= n_players:
+                print("Jogadores conectados.")
+                Server.playersConnected = True
                 break
+                
 
     def client_t(conn: Socket, id: int):
         while True:
@@ -45,27 +53,21 @@ class Server:
                 data = conn.recv(4096) #conexao recebe
 
                 if not data:
-                    print("Disconnected")
+                    print("Player " + str(id) + " disconnected")
+                    Server.clients[id - 1] = None
                     break
                 else:
-                    send_others(id, data)
+                    #Tratar mensagens recebidas por cada cliente
+                    Server.send_others(id, data)
             except:
                 break
         
         conn.close()
 
-
     def send_others(id: int, data: bytes):
         n_clients = len(Server.clients) 
 
-        for i in range(1, n_clients+1):
-            if i == id: pass
+        for i in range(n_clients):
+            if i + 1 == id: continue
 
-            print(i)
-            other.send(data)
-
-
-Server.start(5)
-
-while True:
-    pass
+            Server.clients[i].send(data)
