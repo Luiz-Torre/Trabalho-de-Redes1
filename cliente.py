@@ -30,7 +30,7 @@ class Client():
             print(e)
 
     def receiveMessages(self):
-        print("Waiting for server message...")
+        print("Esperando por respostas do Servidor...")
         while True:
             data = self.client.recv(1024)
             self.last_response = data.decode()

@@ -239,144 +239,155 @@ def leCoordenada(dim, vez):
 ##
 # Parametros da partida
 ##
+def jogo():
 
-# Tamanho (da lateral) do tabuleiro. NECESSARIAMENTE PAR E MENOR QUE 10!
-while True:
-    dim = int(input("Informe o tamanho do tabuleiro (2, 4, 6 ou 8): "))
-    if dim in [2,4,6,8]:
-        break
-    print("Valor inválido!\n")
-
-# Numero de jogadores
-nJogadores = int(input("Informe o número de jogadores: "))
-Server.start(nJogadores)
-
-#Esperando jogadores se conectarem
-while(not Server.playersConnected): pass   
-
-# Numero total de pares de pecas
-totalDePares = dim**2 / 2
-
-##
-# Programa principal
-##
-
-# Cria um novo tabuleiro para a partida
-tabuleiro = novoTabuleiro(dim)
-
-
-# Cria um novo placar zerado
-placar = novoPlacar(nJogadores)
-
-# Partida continua enquanto ainda ha pares de pecas a 
-# casar.
-paresEncontrados = 0
-vez = 0
-while paresEncontrados < totalDePares:
-
-    # Requisita primeira peca do proximo jogador
+    # Tamanho (da lateral) do tabuleiro. NECESSARIAMENTE PAR E MENOR QUE 10!
     while True:
+        dim = int(input("Informe o tamanho do tabuleiro (2, 4, 6 ou 8): "))
+        if dim in [2,4,6,8]:
+            break
+        print("Valor inválido!\n")
+
+    # Numero de jogadores
+    nJogadores = int(input("Informe o número de jogadores: "))
+    Server.start(nJogadores)
+
+    #Esperando jogadores se conectarem
+    while(not Server.playersConnected): pass   
+
+    # Numero total de pares de pecas
+    totalDePares = dim**2 / 2
+
+    ##
+    # Programa principal
+    ##
+
+    # Cria um novo tabuleiro para a partida
+    tabuleiro = novoTabuleiro(dim)
+
+
+    # Cria um novo placar zerado
+    placar = novoPlacar(nJogadores)
+
+    # Partida continua enquanto ainda ha pares de pecas a 
+    # casar.
+    paresEncontrados = 0
+    vez = 0
+    while paresEncontrados < totalDePares:
+
+        # Requisita primeira peca do proximo jogador
+        while True:
+
+            # Imprime status do jogo
+            imprimeStatus(tabuleiro, placar, vez)
+            Server.send_others(vez, f"Vez do Jogador {vez + 1}.\n")
+            Server.send(vez, "\nSua vez de jogar!\n")        
+
+            # Solicita coordenadas da primeira peca.
+            coordenadas = leCoordenada(dim, vez)
+            if coordenadas == False:
+                continue
+
+            i1, j1 = coordenadas
+
+            # Testa se peca ja esta aberta (ou removida)
+            if abrePeca(tabuleiro, i1, j1) == False:
+                Server.send(vez, "+ Escolha uma peca ainda fechada!\n")
+                continue
+
+            break 
+
+        # Requisita segunda peca do proximo jogador
+        while True:
+
+            # Imprime status do jogo
+            imprimeStatus(tabuleiro, placar, vez)
+
+            # Solicita coordenadas da segunda peca.
+            coordenadas = leCoordenada(dim, vez)
+            if coordenadas == False:
+                continue
+
+            i2, j2 = coordenadas
+
+            # Testa se peca ja esta aberta (ou removida)
+            if abrePeca(tabuleiro, i2, j2) == False:
+
+                Server.send(vez, "+ Escolha uma peca ainda fechada!\n")
+                continue
+
+            break 
 
         # Imprime status do jogo
         imprimeStatus(tabuleiro, placar, vez)
-        Server.send_others(vez, f"Vez do Jogador {vez + 1}.\n")
-        Server.send(vez, "\nSua vez de jogar!\n")        
+        Server.send_all("\n\nPlacar:\n---------------------")
+        for i in range(nJogadores):
+            Server.send_all("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
+        Server.send_all("\n")
 
-        # Solicita coordenadas da primeira peca.
-        coordenadas = leCoordenada(dim, vez)
-        if coordenadas == False:
-            continue
 
-        i1, j1 = coordenadas
+        print("Pecas escolhidas --> ({0}, {1}) e ({2}, {3})\n".format(i1, j1, i2, j2))
+        Server.send_others(vez, f"Pecas escolhidas --> ({i1}, {j1}) e ({i2}, {j2})")
 
-        # Testa se peca ja esta aberta (ou removida)
-        if abrePeca(tabuleiro, i1, j1) == False:
-            Server.send(vez, "+ Escolha uma peca ainda fechada!\n")
-            continue
+        # Pecas escolhidas sao iguais?
+        if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
 
-        break 
+            Server.send(vez, "Parabéns você pontuou! Agora, você joga novamente.\n")
 
-    # Requisita segunda peca do proximo jogador
-    while True:
+            print("Pecas casam! Ponto para o jogador {0}.".format(vez + 1))
+            Server.send_others(vez, f"Pecas casam! Ponto para o jogador {vez + 1}.\n")
+            
+            incrementaPlacar(placar, vez)
+            paresEncontrados = paresEncontrados + 1
+            removePeca(tabuleiro, i1, j1)
+            removePeca(tabuleiro, i2, j2)
 
-        # Imprime status do jogo
-        imprimeStatus(tabuleiro, placar, vez)
+            time.sleep(5)
+        else:
+            Server.send(vez, "Pecas nao casam!\n")
+            Server.send_others(vez, f"Pecas não casam! Acabou a vez do jogador {vez + 1}.\n")
+            
+            time.sleep(3)
 
-        # Solicita coordenadas da segunda peca.
-        coordenadas = leCoordenada(dim, vez)
-        if coordenadas == False:
-            continue
+            fechaPeca(tabuleiro, i1, j1)
+            fechaPeca(tabuleiro, i2, j2)
+            vez = (vez + 1) % nJogadores
 
-        i2, j2 = coordenadas
-
-        # Testa se peca ja esta aberta (ou removida)
-        if abrePeca(tabuleiro, i2, j2) == False:
-
-            Server.send(vez, "+ Escolha uma peca ainda fechada!\n")
-            continue
-
-        break 
-
-    # Imprime status do jogo
-    imprimeStatus(tabuleiro, placar, vez)
-    Server.send_all("\n\nPlacar:\n---------------------")
+    # Verificar o vencedor e imprimir
+    pontuacaoMaxima = max(placar)
+    vencedores = []
     for i in range(nJogadores):
-        Server.send_all("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
-    Server.send_all("\n")
 
+        if placar[i] == pontuacaoMaxima:
+            vencedores.append(i)
 
-    print("Pecas escolhidas --> ({0}, {1}) e ({2}, {3})\n".format(i1, j1, i2, j2))
-    Server.send_others(vez, f"Pecas escolhidas --> ({i1}, {j1}) e ({i2}, {j2})")
+    if len(vencedores) > 1:
 
-    # Pecas escolhidas sao iguais?
-    if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
-
-        Server.send(vez, "Parabéns você pontuou! Agora, você joga novamente.\n")
-
-        print("Pecas casam! Ponto para o jogador {0}.".format(vez + 1))
-        Server.send_others(vez, f"Pecas casam! Ponto para o jogador {vez + 1}.\n")
+        sys.stdout.write("\nHouve empate entre os jogadores ")
+        Server.send_all("% \nHouve empate entre os jogadores:")
         
-        incrementaPlacar(placar, vez)
-        paresEncontrados = paresEncontrados + 1
-        removePeca(tabuleiro, i1, j1)
-        removePeca(tabuleiro, i2, j2)
+        
+        for i in vencedores:
+            Server.send_all(f"% {i+1}")
+            sys.stdout.write(str(i + 1) + ' ')
 
-        time.sleep(5)
+        Server.send_all(f"* \n\nFim de jogo.")
+        sys.stdout.write(".\n\n")
+
     else:
-        Server.send(vez, "Pecas nao casam!\n")
-        Server.send_others(vez, f"Pecas não casam! Acabou a vez do jogador {vez + 1}.\n")
-        
-        time.sleep(3)
 
-        fechaPeca(tabuleiro, i1, j1)
-        fechaPeca(tabuleiro, i2, j2)
-        vez = (vez + 1) % nJogadores
+        Server.send_others(vencedores[0], f"* Jogador {vencedores[0] + 1} foi o vencedor!\n")
+        Server.send(vencedores[0], "* Você ganhou! Uhuuul!\n")
+        print("\nJogador {0} foi o vencedor!\n".format(vencedores[0] + 1))
 
-# Verificar o vencedor e imprimir
-pontuacaoMaxima = max(placar)
-vencedores = []
-for i in range(nJogadores):
+#Manter servidor rodando
+while True:
+    jogo()
 
-    if placar[i] == pontuacaoMaxima:
-        vencedores.append(i)
+    #Esperar jogadores se desconectarem
+    time.sleep(1)
 
-if len(vencedores) > 1:
-
-    sys.stdout.write("\nHouve empate entre os jogadores ")
-    Server.send_all("% \nHouve empate entre os jogadores:")
-    
-    
-    for i in vencedores:
-        Server.send_all(f"% {i+1}")
-        sys.stdout.write(str(i + 1) + ' ')
-
-    Server.send_all(f"* \n\nFim de jogo.")
-    sys.stdout.write(".\n\n")
-
-else:
-
-    Server.send_others(vencedores[0], f"* Jogador {vencedores[0] + 1} foi o vencedor!\n")
-    Server.send(vencedores[0], "* Você ganhou! Uhuuul!\n")
-    print("\nJogador {0} foi o vencedor!\n".format(vencedores[0] + 1))
-
+    #Preparar servidor para novo jogo
+    Server.resetServerInfo()
+    print("Novo jogo!")
 

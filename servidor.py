@@ -13,6 +13,10 @@ class Server:
     playersConnected = False
     messageBuffer = []
 
+    def resetServerInfo():
+        Server.clients = []
+        Server.playersConnected = False
+        Server.messageBuffer = []
 
     def start(n_players: int):
         ''' Função para inicializar o servidor. '''
@@ -84,3 +88,4 @@ class Server:
 
         for i in range(n_clients):
             Server.send(i, data)
+    
