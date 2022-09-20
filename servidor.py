@@ -6,8 +6,8 @@ import sys
 
 class Server:
 
-    HOST = "localhost"  # IP local
-    PORT = 1332     # porta para conexão
+    HOST = "localhost" # IP local
+    PORT = 1331     # porta para conexão
     socket = None   # socket do servidor, sem valor atribuído
     clients = []    # lista de clientes conectados
     playersConnected = False
@@ -77,4 +77,10 @@ class Server:
             if i == indice: 
                 continue
 
+            Server.send(i, data)
+
+    def send_all(data: str):
+        n_clients = len(Server.clients) 
+
+        for i in range(n_clients):
             Server.send(i, data)

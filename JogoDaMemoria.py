@@ -26,22 +26,29 @@ def imprimeTabuleiro(tabuleiro):
 
     # Imprime coordenadas horizontais
     dim = len(tabuleiro)
+    Server.send_all("%      ")
     sys.stdout.write("     ")
     for i in range(dim):
+        Server.send_all("% {0:2d} ".format(i))
         sys.stdout.write("{0:2d} ".format(i))
 
     sys.stdout.write("\n")
+    Server.send_all("% \n")
 
     # Imprime separador horizontal
     sys.stdout.write("-----")
+    Server.send_all("% -----")
     for i in range(dim):
+        Server.send_all("% ---")
         sys.stdout.write("---")
 
     sys.stdout.write("\n")
+    Server.send_all("% \n")
 
     for i in range(dim):
 
         # Imprime coordenadas verticais
+        Server.send_all("% {0:2d} | ".format(i))
         sys.stdout.write("{0:2d} | ".format(i))
 
         # Imprime conteudo da linha 'i'
@@ -51,18 +58,22 @@ def imprimeTabuleiro(tabuleiro):
             if tabuleiro[i][j] == '-':
 
                 # Sim.
+                Server.send_all("%  - ")
                 sys.stdout.write(" - ")
 
             # Peca esta levantada?
             elif tabuleiro[i][j] >= 0:
 
                 # Sim, imprime valor.
+                Server.send_all("% {0:2d} ".format(tabuleiro[i][j]))
                 sys.stdout.write("{0:2d} ".format(tabuleiro[i][j]))
             else:
 
                 # Nao, imprime '?'
+                Server.send_all("%  ? ")
                 sys.stdout.write(" ? ")
 
+        Server.send_all("% \n")
         sys.stdout.write("\n")
 
 # Cria um novo tabuleiro com pecas aleatorias. 
@@ -168,8 +179,7 @@ def imprimePlacar(placar):
 
     nJogadores = len(placar)
 
-    print("Placar:")
-    print("---------------------")
+    print("Placar:\n---------------------")
     for i in range(nJogadores):
         print("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
 
@@ -182,6 +192,7 @@ def imprimeStatus(tabuleiro, placar, vez):
 
         imprimeTabuleiro(tabuleiro)
         sys.stdout.write('\n')
+        Server.send_all("% \n")
 
         imprimePlacar(placar)
         sys.stdout.write('\n')
@@ -190,12 +201,11 @@ def imprimeStatus(tabuleiro, placar, vez):
 
         
         print("Vez do Jogador {0}.\n".format(vez + 1))
-        Server.send_others(vez, f"O Jogador {vez + 1} está jogando...\n")
 
 # Le um coordenadas de uma peca. Retorna uma tupla do tipo (i, j)
 # em caso de sucesso, ou False em caso de erro.
 def leCoordenada(dim, vez):
-    Server.send(vez, "> Especifique uma peca: ")
+    Server.send(vez, "> \nEspecifique uma peca: ")
 
     #Esperando mensagem do servidor
     while len(Server.messageBuffer[vez]) == 0: pass
@@ -223,6 +233,7 @@ def leCoordenada(dim, vez):
         Server.send(vez, erro)
         return False
 
+    Server.send_others(vez, f"O Jogador {vez + 1} jogou {i} {j}...\n")
     return (i, j)
 
 ##
@@ -267,9 +278,9 @@ while paresEncontrados < totalDePares:
     while True:
 
         # Imprime status do jogo
-        Server.send_others(vez, f"Vez do Jogador {vez + 1}.\n")
-        Server.send(vez, "\nSua vez de jogar!")        
         imprimeStatus(tabuleiro, placar, vez)
+        Server.send_others(vez, f"Vez do Jogador {vez + 1}.\n")
+        Server.send(vez, "\nSua vez de jogar!\n")        
 
         # Solicita coordenadas da primeira peca.
         coordenadas = leCoordenada(dim, vez)
@@ -308,8 +319,14 @@ while paresEncontrados < totalDePares:
 
     # Imprime status do jogo
     imprimeStatus(tabuleiro, placar, vez)
+    Server.send_all("\n\nPlacar:\n---------------------")
+    for i in range(nJogadores):
+        Server.send_all("Jogador {0}: {1:2d}".format(i + 1, placar[i]))
+    Server.send_all("\n")
+
 
     print("Pecas escolhidas --> ({0}, {1}) e ({2}, {3})\n".format(i1, j1, i2, j2))
+    Server.send_others(vez, f"Pecas escolhidas --> ({i1}, {j1}) e ({i2}, {j2})")
 
     # Pecas escolhidas sao iguais?
     if tabuleiro[i1][j1] == tabuleiro[i2][j2]:
@@ -317,6 +334,7 @@ while paresEncontrados < totalDePares:
         Server.send(vez, "Parabéns você pontuou! Agora, você joga novamente.\n")
 
         print("Pecas casam! Ponto para o jogador {0}.".format(vez + 1))
+        Server.send_others(vez, f"Pecas casam! Ponto para o jogador {vez + 1}.\n")
         
         incrementaPlacar(placar, vez)
         paresEncontrados = paresEncontrados + 1
@@ -326,6 +344,7 @@ while paresEncontrados < totalDePares:
         time.sleep(5)
     else:
         Server.send(vez, "Pecas nao casam!\n")
+        Server.send_others(vez, f"Pecas não casam! Acabou a vez do jogador {vez + 1}.\n")
         
         time.sleep(3)
 
@@ -344,10 +363,15 @@ for i in range(nJogadores):
 if len(vencedores) > 1:
 
     sys.stdout.write("\nHouve empate entre os jogadores ")
+    Server.send_all("% \nHouve empate entre os jogadores:")
+    
+    
     for i in vencedores:
+        Server.send_all(f"% {i+1}")
         sys.stdout.write(str(i + 1) + ' ')
 
-    sys.stdout.write("\n")
+    Server.send_all(f"* \n\nFim de jogo.")
+    sys.stdout.write(".\n\n")
 
 else:
 
