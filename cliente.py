@@ -37,6 +37,7 @@ class Client():
 
             #Processar mensagens
             messages = self.last_response.split("#")[:-1]
+            os.system('cls||clear')
             for m in messages:
                 type_of_m = m[0]
 
@@ -46,10 +47,10 @@ class Client():
                     coordenadas = input(m[2:])
                     self.send(coordenadas.encode())
                 #Se for um erro
-                elif type_of_m == "+":
+                elif type_of_m == "+":    
                     print(m[2:])
                 #Se não for para pular linha
-                elif type_of_m == "%":
+                elif type_of_m == "%":                  
                     print(m[2:], end =" ")
                 #Se acabou o jogo
                 elif type_of_m == "*":
