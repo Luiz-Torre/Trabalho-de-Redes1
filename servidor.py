@@ -75,7 +75,7 @@ class Server:
     
     def send(player: int, message: str):
         ''' Função para enviar mensagem para apenas um cliente. '''
-        if Server.clients[players]: #Caso a conexão seja None, a mensagem não deve ir
+        if Server.clients[player]: #Caso a conexão seja None, a mensagem não deve ir
             Server.clients[player].send(str.encode(message+"#"))
 
 

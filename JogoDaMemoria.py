@@ -7,7 +7,7 @@ from servidor import Server
 
 ##
 # Funcoes uteis
-##
+##./
 
 # Limpa a tela.
 def limpaTela():
@@ -58,7 +58,7 @@ def imprimeTabuleiro(tabuleiro):
             if tabuleiro[i][j] == '-':
 
                 # Sim.
-                Server.send_all("%  - ")
+                Server.send_all("%  -")
                 sys.stdout.write(" - ")
 
             # Peca esta levantada?

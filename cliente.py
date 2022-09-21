@@ -31,7 +31,7 @@ class Client():
 
     def receive_messages(self):
         ''' Realiza o recebimento das mensagens, processa e trata '''
-        print("Esperando por respostas do Servidor...")
+        print("Aguardando os outros jogadores se conectarem...")
         while True:
             data = self.client.recv(1024)
             self.last_response = data.decode()
