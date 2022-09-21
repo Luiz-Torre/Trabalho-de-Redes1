@@ -1,35 +1,36 @@
 import socket
-from _thread import *
-import sys
 import os
 
 
 class Client():
+    
     def __init__(self):
+        ''' Inicia o Cliente '''
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server = "localhost"
         self.port = 1331
         self.addr = (self.server, self.port)
-        self.ready = False
-        self.id = self.connect()
+        self.id = self.connect() 
         self.last_response = ""
 
     def connect(self):
+        ''' Realiza a conexão com o servidor '''
         try:
             self.client.connect(self.addr)
-            return self.client.recv(1024).decode().split(":")[1]
+            return self.client.recv(1024).decode().split(":")[1] #id
         except:
             print("Failed to connect.")
             pass
 
-    def send(self, msg):
-        # print("enviou: " + msg.decode())
+    def send(self, msg: str):
+        ''' Realiza o envio de mensagens para o servidor '''
         try:
-            self.client.send(msg)
+            self.client.send(msg.encode())
         except socket.error as e:
             print(e)
 
-    def receiveMessages(self):
+    def receive_messages(self):
+        ''' Realiza o recebimento das mensagens, processa e trata '''
         print("Esperando por respostas do Servidor...")
         while True:
             data = self.client.recv(1024)
@@ -38,14 +39,16 @@ class Client():
             #Processar mensagens
             messages = self.last_response.split("#")[:-1]
             os.system('cls||clear')
+            
+            #Tratar mensagens
             for m in messages:
-                type_of_m = m[0]
+                type_of_m = m[0] #tipo da mensagem
 
                 #Se for uma ação
                 if type_of_m == ">":
                     #Mandar coordenadas
                     coordenadas = input(m[2:])
-                    self.send(coordenadas.encode())
+                    self.send(coordenadas)
                 #Se for um erro
                 elif type_of_m == "+":    
                     print(m[2:])
@@ -56,16 +59,17 @@ class Client():
                 elif type_of_m == "*":
                     print(m[2:])
                     self.close()
-                    return
+                    return # encerra o programa
                 else:
                     print(m)
 
 
     def close(self):
+        ''' Fecha a conexão com o servidor '''
         self.client.close()
 
 c = Client()
-c.receiveMessages()
+c.receive_messages()
 
 
 
