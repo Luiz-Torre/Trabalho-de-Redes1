@@ -6,17 +6,12 @@ import sys
 
 class Server:
 
-    HOST = "localhost" # IP local
-    PORT = 1331     # porta para conexão
-    socket = None   # socket do servidor, sem valor atribuído
-    clients = []    # lista de clientes conectados
+    HOST = "localhost"  # IP local
+    PORT = 1331         # porta escolhida para conexão
+    socket = None       # socket do servidor, sem valor atribuído
+    clients = []        # lista de clientes conectados
     playersConnected = False
     messageBuffer = []
-
-    def resetServerInfo():
-        Server.clients = []
-        Server.playersConnected = False
-        Server.messageBuffer = []
 
     def start(n_players: int):
         ''' Função para inicializar o servidor. '''
@@ -29,6 +24,12 @@ class Server:
             sys.exit()  
         Server.socket.listen()
         start_new_thread(Server.start_t,(n_players,))
+        
+    def resetServerInfo():
+        ''' Função para resetar o servidor ao final do jogo. '''
+        Server.clients = []
+        Server.playersConnected = False
+        Server.messageBuffer = []
 
     def start_t(n_players: int): 
         ''' Thread criada para esperar N conexões com o servidor. '''
@@ -54,11 +55,13 @@ class Server:
                 
 
     def client_t(conn: Socket, id: int):
+        ''' Thread criada para receber mensagens dos clientes. '''
         while True:
             try:
-                data = conn.recv(4096) #conexao recebe
+                data = conn.recv(4096) #Conexao recebe
 
                 if not data:
+                    #Cliente se desconectou do servidor
                     print("Player " + str(id) + " disconnected")
                     Server.clients[id - 1] = None
                     break
@@ -71,10 +74,13 @@ class Server:
         conn.close()
     
     def send(player: int, message: str):
-        Server.clients[player].send(str.encode(message+"#"))
+        ''' Função para enviar mensagem para apenas um cliente. '''
+        if Server.clients[players]: #Caso a conexão seja None, a mensagem não deve ir
+            Server.clients[player].send(str.encode(message+"#"))
 
 
     def send_others(indice: int, data: str):
+        ''' Função para enviar mensagem para todos os outros clientes, exceto um. '''
         n_clients = len(Server.clients) 
 
         for i in range(n_clients):
@@ -84,6 +90,7 @@ class Server:
             Server.send(i, data)
 
     def send_all(data: str):
+        ''' Função para enviar mensagem para todos os clientes. '''
         n_clients = len(Server.clients) 
 
         for i in range(n_clients):
