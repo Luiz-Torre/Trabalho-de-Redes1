@@ -211,6 +211,10 @@ def leCoordenada(dim, vez):
     while len(Server.messageBuffer[vez]) == 0: pass
 
     inp = Server.messageBuffer[vez].pop(0)
+    print((inp))
+    if str(inp).upper() == "SAIR":
+        mensagem_saida = "!"
+        Server.send(vez, mensagem_saida)
 
     try:
         i = int(inp.split(' ')[0])

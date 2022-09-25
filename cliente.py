@@ -1,9 +1,10 @@
 import socket
 import os
 
+from servidor import Server
+
 
 class Client():
-    
     def __init__(self):
         ''' Inicia o Cliente '''
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,7 +32,7 @@ class Client():
 
     def receive_messages(self):
         ''' Realiza o recebimento das mensagens, processa e trata '''
-        print("Aguardando os outros jogadores se conectarem...")
+        print("Seja bem vindo ao jogo da Memória da UFF. Caso sem algum momento deseje sair, digite SAIR na sua vez!\n\nAguarde os outros jogadores se conectarem...")
         while True:
             data = self.client.recv(1024)
             self.last_response = data.decode()
@@ -59,6 +60,10 @@ class Client():
                 elif type_of_m == "*":
                     print(m[2:])
                     self.close()
+                    return # encerra o programa
+                elif type_of_m == "!":
+                    print("\U0001f499\U0001f499 Que pena que você está saindo. Até um próximo jogo! \U0001f499 \U0001f499")
+                    self.client.close()
                     return # encerra o programa
                 else:
                     print(m)
