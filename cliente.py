@@ -60,11 +60,11 @@ class Client():
                 elif type_of_m == "*":
                     print(m[2:])
                     self.close()
-                    return # encerra o programa
+                    os.sys.exit() # encerra o programa
                 elif type_of_m == "!":
                     print("\U0001f499\U0001f499 Que pena que você está saindo. Até um próximo jogo! \U0001f499 \U0001f499")
-                    self.client.close()
-                    return # encerra o programa
+                    self.close()
+                    os.sys.exit() # encerra o programa
                 else:
                     print(m)
 

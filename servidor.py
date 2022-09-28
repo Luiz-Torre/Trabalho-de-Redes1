@@ -13,8 +13,9 @@ class Server:
     playersConnected = False
     messageBuffer = []
 
-    def start(n_players: int):
+    def start():
         ''' Função para inicializar o servidor. '''
+
         Server.socket = Socket(socket.AF_INET, socket.SOCK_STREAM)
     
         try:
@@ -23,7 +24,20 @@ class Server:
             print(e)
             sys.exit()  
         Server.socket.listen()
-        start_new_thread(Server.start_t,(n_players,))
+
+        # Primeira conexão
+        while True:
+            print("Aguardando primeiro jogador...")
+            conn, addr = Server.socket.accept()
+            Server.clients.append(conn)
+            Server.messageBuffer.append([])
+            print(f"{addr} está conectado.")
+
+            #Manda para o player seu ID no servidor   
+            conn.send(str.encode(f"id: 1"))
+
+            start_new_thread(Server.client_t, (conn, 1))
+            break
         
     def resetServerInfo():
         ''' Função para resetar o servidor ao final do jogo. '''
@@ -44,7 +58,7 @@ class Server:
             print(f"{addr} está conectado.")
 
             #Manda para o player seu ID no servidor   
-            conn.send(str.encode(f"id:{n_clients+1}"))
+            conn.send(str.encode(f"id: {n_clients+1}"))
 
             start_new_thread(Server.client_t, (conn, n_clients+1))
 
@@ -64,10 +78,20 @@ class Server:
                     #Cliente se desconectou do servidor
                     print("Player " + str(id) + " disconnected")
                     Server.clients[id - 1] = None
+                    Server.messageBuffer[id - 1].append(None)
                     break
                 else:
                     #Tratar mensagens recebidas por cada cliente
-                    Server.messageBuffer[id - 1].append(data.decode())
+                    inp = data.decode()
+                    if "SAIR" in str(inp).upper():
+                        mensagem_saida = "!"
+                        Server.send(id-1, mensagem_saida)
+                        print("Player " + str(id) + " disconnected")
+                        Server.clients[id - 1] = None
+                        Server.messageBuffer[id - 1].append(None)
+                        break
+
+                    Server.messageBuffer[id - 1].append(inp)
 
             except:
                 break

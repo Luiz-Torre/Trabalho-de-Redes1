@@ -3,6 +3,7 @@ import sys
 import time
 import random
 
+from _thread import *
 from servidor import Server
 
 ##
@@ -207,15 +208,23 @@ def imprimeStatus(tabuleiro, placar, vez):
 def leCoordenada(dim, vez):
     Server.send(vez, "> \nEspecifique uma peca: ")
 
-    #Esperando mensagem do servidor
-    while len(Server.messageBuffer[vez]) == 0: pass
+    #Esperando mensagem do servidor e contando tempo
+    start = time.time()
+    
+    # 1 minuto para fazer jogada
+    while len(Server.messageBuffer[vez]) == 0: 
+        end = time.time()
+        if (end-start) >= 60:
+            noMessage = True
+            break
+        pass
+
+    if Server.messageBuffer[vez][0] == None or noMessage:
+        Server.send_others(vez, f"O Jogador {vez + 1} está ausente...\n\nFim de jogo.")
+        return "Game Over"
 
     inp = Server.messageBuffer[vez].pop(0)
-    print((inp))
-    if str(inp).upper() == "SAIR":
-        mensagem_saida = "!"
-        Server.send(vez, mensagem_saida)
-
+        
     try:
         i = int(inp.split(' ')[0])
         j = int(inp.split(' ')[1])
@@ -245,16 +254,32 @@ def leCoordenada(dim, vez):
 ##
 def jogo():
 
+    Server.start()
     # Tamanho (da lateral) do tabuleiro. NECESSARIAMENTE PAR E MENOR QUE 10!
     while True:
-        dim = int(input("Informe o tamanho do tabuleiro (2, 4, 6 ou 8): "))
+        Server.send(0,"> Informe o tamanho do tabuleiro (2, 4, 6 ou 8): ")
+        print("Informe o tamanho do tabuleiro (2, 4, 6 ou 8): ")
+        #Esperando mensagem do servidor
+        while len(Server.messageBuffer[0]) == 0: pass
+
+        dim = int(Server.messageBuffer[0].pop(0))
+        print(dim)
         if dim in [2,4,6,8]:
             break
+        Server.send(0,"> Valor inválido!\n")
         print("Valor inválido!\n")
 
     # Numero de jogadores
-    nJogadores = int(input("Informe o número de jogadores: "))
-    Server.start(nJogadores)
+    Server.send(0, "> Indique o número total de jogadores: ")
+    print("Informe o número total de jogadores: ")
+
+    #Esperando mensagem do servidor
+    while len(Server.messageBuffer[0]) == 0: pass
+
+    nJogadores = int(Server.messageBuffer[0].pop(0))
+    print(nJogadores)
+    start_new_thread(Server.start_t,(nJogadores,))
+    
 
     #Esperando jogadores se conectarem
     while(not Server.playersConnected): pass   
@@ -289,6 +314,9 @@ def jogo():
 
             # Solicita coordenadas da primeira peca.
             coordenadas = leCoordenada(dim, vez)
+            if coordenadas == "Game Over":
+                break
+
             if coordenadas == False:
                 continue
 
@@ -301,6 +329,9 @@ def jogo():
 
             break 
 
+        if coordenadas == "Game Over":
+            break
+
         # Requisita segunda peca do proximo jogador
         while True:
 
@@ -309,6 +340,8 @@ def jogo():
 
             # Solicita coordenadas da segunda peca.
             coordenadas = leCoordenada(dim, vez)
+            if coordenadas == "Game Over":
+                break
             if coordenadas == False:
                 continue
 
@@ -322,6 +355,8 @@ def jogo():
 
             break 
 
+        if coordenadas == "Game Over":
+            break
         # Imprime status do jogo
         imprimeStatus(tabuleiro, placar, vez)
         Server.send_all("\n\nPlacar:\n---------------------")
