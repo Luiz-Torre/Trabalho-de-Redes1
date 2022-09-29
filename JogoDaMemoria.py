@@ -30,7 +30,9 @@ def imprimeTabuleiro(tabuleiro):
     Server.send_all("%      ")
     sys.stdout.write("     ")
     for i in range(dim):
-        Server.send_all("% {0:2d} ".format(i))
+        if i == 0:
+            #Marcar inicio de tabuleiro
+            Server.send_all("%~{0:2d} ".format(i))
         sys.stdout.write("{0:2d} ".format(i))
 
     sys.stdout.write("\n")
@@ -212,7 +214,7 @@ def leCoordenada(dim, vez):
     start = time.time()
     
     noMessage = False
-    
+
     # 1 minuto para fazer jogada
     while len(Server.messageBuffer[vez]) == 0: 
         end = time.time()

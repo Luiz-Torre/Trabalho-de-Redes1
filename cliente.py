@@ -39,7 +39,9 @@ class Client():
 
             #Processar mensagens
             messages = self.last_response.split("#")[:-1]
-            os.system('cls||clear')
+            
+            
+            print(messages)
             
             #Tratar mensagens
             for m in messages:
@@ -54,7 +56,11 @@ class Client():
                 elif type_of_m == "+":    
                     print(m[2:])
                 #Se não for para pular linha
-                elif type_of_m == "%":                  
+                elif type_of_m == "%":
+                    #Inicio de novo tabuleiro
+                    if m[1] == '~':
+                        os.system('cls||clear')
+
                     print(m[2:], end =" ")
                 #Se acabou o jogo
                 elif type_of_m == "*":
