@@ -211,6 +211,8 @@ def leCoordenada(dim, vez):
     #Esperando mensagem do servidor e contando tempo
     start = time.time()
     
+    noMessage = False
+    
     # 1 minuto para fazer jogada
     while len(Server.messageBuffer[vez]) == 0: 
         end = time.time()
